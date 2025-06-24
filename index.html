@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="css/admin.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-2 sidebar">
+        <h4 class="text-white text-center">Admin</h4>
+        <a href="#" onclick="showSection('dashboardSection')">Dashboard</a>
+        <a href="#" onclick="showSection('usersSection')">Users</a>
+        <a href="#">Orders</a>
+        <a href="#">Settings</a>
+      </div>
+      <div class="col-md-10">
+        <nav class="navbar navbar-light bg-light mt-2 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary d-md-none me-3" id="toggleSidebar">
+              ☰
+            </button>
+            <span class="navbar-brand text-primary mb-0 h1 ms-0">Dashboard</span>
+          </div>
+          <button id="logoutBtn" class="btn btn-outline-primary me-3">Logout</button>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+          <div class="row mt-4">
+            <div class="col-md-4">
+              <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                  <h5 class="card-title">Users</h5>
+                  <p class="card-text">120</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                  <h5 class="card-title">Orders</h5>
+                  <p class="card-text">85</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                  <h5 class="card-title">Revenue</h5>
+                  <p class="card-text">$5,400</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="row">
+            <div class="col-md-6">
+              <canvas id="myChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <h5>Recent Orders</h5>
+              <table class="table table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Item</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Aya</td>
+                    <td>Pizza</td>
+                    <td>Delivered</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>Ahmed</td>
+                    <td>Burger</td>
+                    <td>Pending</td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td>Mona</td>
+                    <td>Pasta</td>
+                    <td>Cancelled</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="usersSection" style="display: none;">
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <h5>Users Management</h5>
+              <table class="table table-bordered">
+                <thead class="table-primary">
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <button class="btn btn-danger mt-3" onclick="deleteAllUsers()">Delete All Users</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const ctx = document.getElementById('myChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['January', 'February', 'March'],
+        datasets: [{
+          label: 'Revenue',
+          data: [3000, 4000, 5400],
+          backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function () {
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'login.html';
+    });
+
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    if (loggedInUser) {
+      document.querySelector('.navbar-brand').textContent = `Welcome, ${JSON.parse(loggedInUser).name}`;
+    } else {
+      document.querySelector('.navbar-brand').textContent = 'Welcome, Guest';
+    }
+
+    function showSection(sectionId) {
+      const sections = ['dashboardSection', 'usersSection'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      const selectedSection = document.getElementById(sectionId);
+      if (selectedSection) selectedSection.style.display = 'block';
+    }
+
+    function renderUsersTable() {
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const tableBody = document.querySelector('#usersSection tbody');
+      tableBody.innerHTML = ''; 
+
+      users.forEach((user, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    renderUsersTable();
+    function deleteAllUsers() {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to delete all users?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete them!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem('users');
+          Swal.fire(
+            'Deleted!',
+            'All users have been deleted.',
+            'success'
+          );
+          renderUsersTable();
+        }
+      });
+    }
+
+   
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.querySelector('.sidebar');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+    })
+
+    document.querySelectorAll('.sidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 768) {
+          sidebar.classList.remove('active');
+        }
+      })
+})
+
+  </script>
+</body>
+</html>
